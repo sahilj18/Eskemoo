@@ -1,55 +1,65 @@
-import option from "./components/Option";
+// MARK: Imports
+import Option from "./components/Option";
 
 // https://dog.ceo/api/breed/affenpinscher/images/random
 // https://dog.ceo/api/breeds/list/all
 
-const BASE_URL=`https://dog.ceo/api/`;
+const BASE_URL = `https://dog.ceo/api/`;
 
+// === MARK: DOM Selection
+const breedListEl = document.querySelector("#data-breed-list");
 const imageEl = document.querySelector("img");
-const breedListEl= document.querySelector("#data-breed-list")
-console.log(imageE1, dataBreedList);
 
-
-// fetch function
-function getDogList(){
-fetch (`${BASE_URL}breeds/list/all`)
-.then((res)=> res.json())
-.then((data)=> data.message)
-.catch((err)=>console.error("error agayi",err));
+// === MARK: Fetch
+async function getDogsList() {
+  try {
+    const res = await fetch(`${BASE_URL}breeds/list/all`);
+    const data = await res.json();
+    return data.message;
+  } catch (err) {
+    console.error("Error occured", err);
+  }
 }
-getDogList();
 
-//TODO; implement this
-function getDogImage(Breed){}
-fetch (`{$BASE_URL}`)
+// Fetch a single dog breed image
+async function getDogImage(breed) {
+  try {
+    const res = await fetch(`${BASE_URL}breed/${breed}/images/random`);
+    const data = await res.json();
+    return data.message;
+  } catch (error) {
+    return console.error(error);
+  }
+}
 
-//===MARK Render
-function renderSelect(){}
+// === MARK: Render
+async function renderSelect() {
+  const dogsList = await getDogsList();
 
-getDogList().then((breedList)=> {
-    for (let breed in breedList){
-        const option=document.childElement("option")
-        option.textcontent="breed";
-        option.value="breed";
-        breedListEl.appendChild(option);
-    }
-})
+  const fragment = document.createDocumentFragment();
 
-renderSelect();
+  Object.keys(dogsList).forEach((dogName) => {
+    fragment.appendChild(Option(dogName));
+  });
 
-function renderImage(){}
+  breedListEl.append(fragment);
+}
 
+async function renderImage(breed) {
+  imageEl.src = "loading.gif";
 
+  const dogImage = await getDogImage(breed);
+  imageEl.src = dogImage;
+  imageEl.alt = breed;
+}
 
+// === MARK:  Events
+breedListEl.addEventListener("change", async (e) => {
+  const currentValue = e.target.value;
+  renderImage(currentValue);
+});
 
-// async function getImage() {
-//   const res = await fetch(
-//     `https://dog.ceo/api/breed/affenpinscher/images/random`
-//   );
-//   const data = await res.json();
-//   console.log(data.message);
-
-//   imageEl.src = data.message;
-// }
-
-// getImage();
+// === Render on inital load
+document.addEventListener("DOMContentLoaded", () => {
+  renderSelect();
+});
